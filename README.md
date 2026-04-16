@@ -1,63 +1,46 @@
-# 🚀 AI Destekli İlan Analiz ve Listeleme Platformu
+# 🚀 AI Destekli Otonom İlan Analiz Platformu
 
-Bu proje, emlak ve vasıta ilan platformlarındaki (Örn: Sahibinden, Arabam.com vb.) karmaşık ilan metinlerini web scraping yöntemiyle çeken, Google Gemini Yapay Zeka modeli ile anlamlı verilere dönüştüren ve veritabanında listeleyen modern bir backend sistemidir.
+Bu proje; çeşitli gayrimenkul ve vasıta ilan platformlarındaki (Örn: Sahibinden, Arabam.com vb.) karmaşık ilan verilerini otonom olarak çeken, güvenlik duvarlarını aşan ve Google Gemini Yapay Zeka modeli ile analiz ederek yapılandırılmış veri halinde PostgreSQL veritabanına kaydeden Full-Stack bir web mimarisidir.
 
-## 🏗 Mimari Yaklaşım
+## 🌟 Öne Çıkan Özellikler
 
-Proje, yazılım mühendisliği standartlarına uygun olarak **Clean Architecture (Temiz Mimari)** prensipleriyle geliştirilmiştir. Kod tabanı üç ana katmana ayrılmıştır:
-* **Domain:** Temel iş kuralları ve veri tipleri (Enum vb.)
-* **Application:** Yapay zeka entegrasyonu ve iş mantığı
-* **Infrastructure:** Veritabanı bağlantıları (ORM), Dış servisler (Scraper) ve Repolar
+- **Gelişmiş Web Scraper (Anti-Bot Bypass):** Playwright altyapısı sayesinde Cloudflare gibi güvenlik duvarlarına takılmadan, gerçek tarayıcı simülasyonu ile veri çekimi.
+- **Yapay Zeka Entegrasyonu:** Çekilen karmaşık (unstructured) HTML/Metin verilerinin Google Gemini API kullanılarak anlamlı JSON verilerine (Başlık, Fiyat, İlan Tipi vb.) dönüştürülmesi.
+- **Otonom Kuyruk Yönetimi (Queue System):** FastAPI `BackgroundTasks` kullanılarak, sisteme verilen toplu ilan linklerinin API hız limitlerine (Rate Limit) takılmadan arka planda sırayla ve otonom işlenmesi.
+- **Tam Teşekküllü CRUD API:** İlan oluşturma, listeleme, silme ve fiyat güncelleme (PATCH) yetenekleri.
+- **Antivirüs & OS Uyumlu Veritabanı:** psycopg2'nin DLL engellerini aşmak için %100 Python tabanlı `pg8000` sürücüsü ve Windows `asyncio` event loop çakışmalarını önleyen özel mimari.
+- **Dinamik Görsel Arayüz (Frontend):** Bootstrap tabanlı, API ile asenkron (CORS destekli) konuşan şık web arayüzü.
 
-## 🛠 Kullanılan Teknolojiler
+## 🛠️ Kullanılan Teknolojiler
 
-* **Web Çerçevesi:** FastAPI (Asenkron ve yüksek performanslı)
-* **Yapay Zeka:** Google Gemini 2.5 Flash
-* **Veritabanı:** PostgreSQL & SQLAlchemy (JSONB desteği ile esnek veri tutma)
-* **Web Scraping:** BeautifulSoup4 & Requests
-* **Sunucu:** Uvicorn
+- **Backend:** Python, FastAPI, Pydantic
+- **Veritabanı & ORM:** PostgreSQL, SQLAlchemy, pg8000
+- **Veri Çekme (Scraping):** Playwright (Chromium Headless/Headed)
+- **Yapay Zeka:** Google Generative AI (Gemini 2.5 Flash)
+- **Frontend:** HTML5, JavaScript (Fetch API), Bootstrap 5
 
 ## ⚙️ Kurulum ve Çalıştırma
 
-Projenin yerel bilgisayarınızda çalışabilmesi için aşağıdaki adımları izleyin:
-
-**1. Repoyu Klonlayın**
+### 1. Gereksinimleri Yükleyin
+Projeyi klonladıktan sonra sanal ortamınızı (venv) oluşturun ve gerekli kütüphaneleri indirin:
 ```bash
-git clone <sizin-repo-linkiniz>
-cd ilan-listeleme-platformu
+pip install fastapi uvicorn sqlalchemy pg8000 pydantic python-dotenv google-generativeai playwright
 ```
-
-**2. Sanal Ortam Oluşturun ve Aktif Edin**
+### 2. Tarayıcı Motorunu Kurun
+Playwright'ın arka planda otonom çalışabilmesi için gerekli tarayıcıyı indirin:
 ```bash
-python -m venv venv
-# Windows için:
-.\venv\Scripts\activate
-# MacOS/Linux için:
-source venv/bin/activate
+playwright install chromium
 ```
-**3. Gerekli Kütüphaneleri Yükleyin**
-```bash
-pip install -r requirements.txt
-```
-**4. Çevresel Değişkenleri Ayarlayın (.env)**
-Projenin ana dizininde bir .env dosyası oluşturun ve yapay zeka API anahtarınızı ekleyin (Bu dosya .gitignore içinde olmalıdır):
+### 3. Çevresel Değişkenleri (.env) Ayarlayın
+Proje ana dizininde bir .env dosyası oluşturun ve bilgilerinizi girin:
 ```Kod snippet'i
+DATABASE_URL=postgresql+pg8000://kullanici_adi:sifre@localhost:5432/veritabani_adi
 GEMINI_API_KEY=sizin_google_gemini_api_anahtariniz
 ```
-
-**5. Sunucuyu Başlatın**
+### 4. Sunucuyu Başlatın
+Motoru ateşlemek için aşağıdaki komutu çalıştırın:
 ```bash
 python -m uvicorn app.main:app --reload
 ```
-
-# 🌐 API Uç Noktaları (Endpoints)
-Uygulama ayağa kalktığında http://localhost:8000/docs adresinden Swagger UI paneline erişebilir ve aşağıdaki işlemleri test edebilirsiniz:
-
-* *GET / :* Sistem sağlık kontrolü.
-* *GET /analiz-et/?url={ilan_linki} :* Verilen linkteki ilanı çeker, Gemini AI ile analiz eder (Fiyat, Başlık, Detaylar) ve PostgreSQL veritabanına kaydeder.
-* *GET /ilanlar/ :* Veritabanına kaydedilmiş ilanları listeler. ilan_tipi (EMLAK/VASITA) ve max_fiyat parametreleriyle gelişmiş filtreleme yapılabilir.
-
-# 🎯 Gelecek Hedefleri
-* [ ] Frontend (Arayüz) entegrasyonunun yapılması.
-* [ ] Düzenli aralıklarla belirli linkleri kontrol eden Celery/Redis tabanlı arka plan görevleri (Background tasks).
-* [ ] AI modelinin çıkarım yeteneğini artırmak için "Oda Sayısı", "Kilometre" gibi detayların spesifik kolonlara ayrılması.
+### 5. Arayüzü Görüntüleyin
+Sunucu çalıştıktan sonra frontend/index.html dosyasını herhangi bir tarayıcıda açarak ilanlarınızı görselleştirebilir veya http://localhost:8000/docs adresinden Swagger API arayüzüne ulaşabilirsiniz.
