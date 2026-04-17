@@ -44,3 +44,15 @@ python -m uvicorn app.main:app --reload
 ```
 ### 5. Arayüzü Görüntüleyin
 Sunucu çalıştıktan sonra frontend/index.html dosyasını herhangi bir tarayıcıda açarak ilanlarınızı görselleştirebilir veya http://localhost:8000/docs adresinden Swagger API arayüzüne ulaşabilirsiniz.
+
+---
+
+## 📅 Geliştirme Günlüğü (Changelog)
+
+### [17.04.2026]
+- **Fix (Veritabanı):** Yapay zekadan gelen metin tabanlı fiyatları (örn: "1.180.000 TL") veritabanına kaydederken yaşanan tip uyuşmazlığını (Type Error) çözmek için `repository.py` içerisine "Veri Temizleme (Sanitization)" filtresi eklendi.
+- **Feat (Scraper):** Gelişmiş bot korumalarını (Cloudflare vb.) kalıcı olarak aşmak için Playwright modülü "Persistent Context" (Hafızalı Tarayıcı) mimarisine geçirildi.
+
+### [16.04.2026]
+- **Feat (Kuyruk):** FastAPI BackgroundTasks ile API limitlerine takılmayan otonom kuyruk (queue) mimarisi kuruldu.
+- **UI (Arayüz):** Bootstrap tabanlı görsel arayüz (frontend) asenkron çalışacak ve CORS destekleyecek şekilde sisteme entegre edildi.

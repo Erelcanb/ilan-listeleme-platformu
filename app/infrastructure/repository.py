@@ -5,23 +5,33 @@ from app.domain.models import IlanTipi
 
 def ilan_kaydet(db: Session, url: str, ai_verisi: dict, ham_metin: str = ""):
     """
-    Yapay zekadan gelen analiz verilerini ve orijinal metni veritabanına kaydeder.
+    Yapay zekadan gelen analiz verilerini temizleyip veritabanına kaydeder.
     """
-    # 1. Güvenlik Kontrolleri (Boş veri gelirse çökmemesi için)
     guvenli_baslik = ai_verisi.get("baslik") or "Başlık Bulunamadı"
-    guvenli_fiyat = ai_verisi.get("fiyat") or 0.0
     
-    # 2. Kayıt Nesnesini Oluşturma
+    # --- YENİ VERİ TEMİZLEME KATMANI ---
+    # Gelen fiyatı (Örn: "1.180.000 TL" veya "150.000") saf sayıya çeviriyoruz
+    ham_fiyat = str(ai_verisi.get("fiyat", "0"))
+    # Önce "TL" yazılarını ve boşlukları at, sonra binlik ayırıcı noktaları sil
+    temiz_fiyat = ham_fiyat.upper().replace("TL", "").replace(" ", "").replace(".", "")
+    # Varsa kuruş virgülünü noktaya çevir (Python float formatı için)
+    temiz_fiyat = temiz_fiyat.replace(",", ".")
+    
+    try:
+        guvenli_fiyat = float(temiz_fiyat)
+    except ValueError:
+        guvenli_fiyat = 0.0  # Çevirme başarısız olursa çökmesini engelle
+    # -----------------------------------
+
     yeni_ilan = IlanORM(
         baslik=guvenli_baslik,
         fiyat=guvenli_fiyat,
         link=url,
         ilan_tipi=ai_verisi.get("ilan_tipi", "Bilinmiyor"),
-        orijinal_metin=ham_metin,  # main.py'den gelen ham_metin buraya yazılıyor
+        orijinal_metin=ham_metin,
         detaylar=ai_verisi.get("detaylar", {})
     )
     
-    # 3. Veritabanına Yazma
     try:
         db.add(yeni_ilan)
         db.commit()
